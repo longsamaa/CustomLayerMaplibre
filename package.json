@@ -1,0 +1,35 @@
+{
+  "name": "maplibre-map4d-vector",
+  "version": "1.0.0",
+  "description": "MapLibre GL JS project with Three.js custom layer",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "vite build",
+    "watch": "tsc --watch",
+    "start": "http-server -p 8080 -o",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "maplibre",
+    "threejs",
+    "typescript",
+    "maps"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@mapbox/vector-tile": "^2.0.4",
+    "lru-cache": "^11.2.4",
+    "maplibre-gl": "^3.6.2",
+    "pbf": "^4.0.1",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/three": "^0.160.0",
+    "http-server": "^14.1.1",
+    "typescript": "^5.3.3",
+    "vite": "^7.2.6"
+  }
+}
