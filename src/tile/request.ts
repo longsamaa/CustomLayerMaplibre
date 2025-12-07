@@ -7,12 +7,9 @@ export async function requestAsync(url: string): Promise<any> {
                 'Referer': 'https://map.map4d.vn/'
             }
         });
-
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        // Parse response based on content type
         const contentType = response.headers.get('content-type');
         if (contentType?.includes('application/json')) {
             return await response.json();

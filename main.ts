@@ -2,7 +2,7 @@
 // declare const maplibregl: any;
 import maplibregl from 'maplibre-gl'
 import * as THREE from 'three'
-import { mapCustomLayer } from "./customLayer";
+import { mapCustomLayer } from "./src/customLayer";
 
 // Initialize the map
 const map = new maplibregl.Map({
@@ -34,10 +34,8 @@ const map = new maplibregl.Map({
 
 // Add navigation controls
 map.addControl(new maplibregl.NavigationControl(), 'top-right');
-
 // Enable tile boundaries
 map.showTileBoundaries = true;
-
 // Add error handler
 map.on('error', (e: any) => {
     console.error('Map error:', e);

@@ -33,12 +33,6 @@ export function getMetersPerPixelAtLatitude(lat: number, zoom: number): number {
            worldSize(constrainedScale);
 }
 
-	// double CesiumHelper::getMetersPerExtentUnit(double lat, uint16_t level)
-	// {
-	// 	auto scale_512 = 1 / mbgl::Projection::getMetersPerPixelAtLatitude(lat, level);
-	// 	return (scale_512 * (double)mbgl::util::EXTENT) * 1 / mbgl::util::tileSize_D; 
-	// }
-
 export function getMetersPerExtentUnit(lat : number, z : number) : number {
     const scale_512 =  1 / getMetersPerPixelAtLatitude(lat,z); 
     return (scale_512 * EXTENT) * 1 / TILE_SIZE; 
