@@ -67,7 +67,6 @@ export interface MapCustomLayer {
     renderingMode: '3d' | '2d' | undefined;
     map?: any;
     camera?: any;
-    scene?: any;
     renderer?: any;
     onAdd: (map: any, gl: WebGLRenderingContext) => void;
     onTileRequest : (tiles : Array<OverscaledTileID>) => void; 

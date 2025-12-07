@@ -12,7 +12,6 @@ export class mapCustomLayer implements MapCustomLayer {
     source_ : customSource = new customSource();
     map : any; 
     camera : any = null; 
-    scene : any = null; 
     renderer : any = null; 
     minZoom : number = 16;
     maxZoom : number = 19;
@@ -35,8 +34,6 @@ export class mapCustomLayer implements MapCustomLayer {
     onAdd(map: any, gl: WebGLRenderingContext): void {
         this.map = map;
         this.camera = new THREE.Camera();
-        this.scene = new THREE.Scene();
-        // Create Three.js renderer using MapLibre's GL context
         this.renderer = new THREE.WebGLRenderer({
             canvas: map.getCanvas(),
             context: gl,
@@ -66,7 +63,7 @@ export class mapCustomLayer implements MapCustomLayer {
 
     render(gl: WebGLRenderingContext): void {
         const tr : Transform = this.map.transform;
-        if (!this.updateVisibleTiles || !this.camera || !this.scene || !this.renderer || !this.map) {
+        if (!this.updateVisibleTiles || !this.camera || !this.renderer || !this.map) {
             return;
         }
         const renderTiles : Array<OverscaledTileID> = this.updateVisibleTiles(tr);
