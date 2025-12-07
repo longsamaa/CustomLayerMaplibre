@@ -67,7 +67,7 @@ export interface MapCustomLayer {
     id: string;
     type: 'custom';
     source_ : CustomSource; 
-    renderingMode: string;
+    renderingMode: '3d' | '2d' | undefined;
     map?: any;
     camera?: any;
     scene?: any;

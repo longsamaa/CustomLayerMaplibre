@@ -35,7 +35,7 @@ const map = new maplibregl.Map({
 // Add navigation controls
 map.addControl(new maplibregl.NavigationControl(), 'top-right');
 // Enable tile boundaries
-map.showTileBoundaries = true;
+// map.showTileBoundaries = true;
 // Add error handler
 map.on('error', (e: any) => {
     console.error('Map error:', e);

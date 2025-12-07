@@ -25,22 +25,15 @@ export function cloneGroupReuse(srcGroup: THREE.Group): THREE.Group {
     srcGroup.traverse((obj) => {
         if ((obj as THREE.Mesh).isMesh) {
             const m = obj as THREE.Mesh;
-
-            // tạo mesh mới nhưng reuse geometry + material
             const newMesh = new THREE.Mesh(m.geometry, m.material);
-
-            // copy transform
             newMesh.position.copy(m.position);
             newMesh.quaternion.copy(m.quaternion);
             newMesh.scale.copy(m.scale);
             newMesh.matrix.copy(m.matrix);
             newMesh.matrixAutoUpdate = m.matrixAutoUpdate;
-
-            // copy các state khác
             newMesh.castShadow = m.castShadow;
             newMesh.receiveShadow = m.receiveShadow;
             newMesh.visible = m.visible;
-
             newGroup.add(newMesh);
         }
     });
@@ -49,8 +42,8 @@ export function cloneGroupReuse(srcGroup: THREE.Group): THREE.Group {
 }
 
 export function convertRawObject3DToZUp(group3d: THREE.Group): THREE.Group {
-    const mat = createYupToZUpMatrix();
-    const material = new THREE.MeshBasicMaterial({ color: 0xC0C0C0, side : THREE.DoubleSide});
+    const mat : THREE.Matrix4 = createYupToZUpMatrix();
+    const material : THREE.Material = new THREE.MeshBasicMaterial({ color: 0xC0C0C0, side : THREE.DoubleSide});
     group3d.traverse((child) => {
         if (child instanceof THREE.Mesh) {
             child.geometry.applyMatrix4(mat);

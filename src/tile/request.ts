@@ -41,7 +41,7 @@ export async function requestVectorTile(z: number,
     y: number,
     key : string, 
     url : string): Promise<ArrayBuffer> {
-    const replaceUrl = buildURL(z,x,y,key,url); 
+    const replaceUrl : string = buildURL(z,x,y,key,url); 
     return requestAsync(replaceUrl) as Promise<ArrayBuffer>;
 }
 

@@ -5,7 +5,6 @@ export function parseVectorTile(buffer: ArrayBuffer): VectorTile {
     return new VectorTile(pbf);
 }
 
-// Get features from a layer
 export function getLayerFeatures(tile: VectorTile, layerName: string) : any {
     const layer = tile.layers[layerName];
     if (!layer) {
