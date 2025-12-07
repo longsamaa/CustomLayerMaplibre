@@ -138,7 +138,7 @@ export class customSource implements CustomSource {
                                     cloneObj3d.name = modelId; 
                                     cloneObj3d.position.set(object.localCoordX as number,object.localCoordY as number,0);
                                     cloneObj3d.scale.set(scaleUnit * objectScale, -scaleUnit * objectScale, 1.0 * objectScale);
-                                    cloneObj3d.rotation.z = - bearing * Math.PI / 180.0;
+                                    cloneObj3d.rotation.z = -THREE.MathUtils.degToRad(bearing);
                                     cloneObj3d.updateMatrix(); 
                                     cloneObj3d.updateMatrixWorld(true);
                                     cloneObj3d.updateMatrixWorld(true);
