@@ -1,8 +1,5 @@
-declare const THREE: any;
-declare const maplibregl: any;
 import { LRUCache } from 'lru-cache'
 import { CanonicalTileID, OverscaledTileID, Transform } from 'maplibre-gl';
-
 
 export interface LocalCoordinate {
     tileX : number,
@@ -20,14 +17,14 @@ export interface LatLon{
 export interface TileMatrixData {
     tile: CanonicalTileID;
     tileMatrix: Float64Array;
-    distance?: number; // Distance from camera center (optional)
+    distance?: number; 
 }
 
 export interface ObjectInfo
 {
     id? : string; 
     name? : string; 
-    group? : any; // 1 object của map4d là 1 group do có nhiều mesh
+    group? : any; 
     localCoordX? : number; 
     localCoordY? : number; 
     scale? : number; 

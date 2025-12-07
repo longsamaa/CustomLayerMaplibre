@@ -141,6 +141,8 @@ export class customSource implements CustomSource {
                                     cloneObj3d.rotation.z = - bearing * Math.PI / 180.0;
                                     cloneObj3d.updateMatrix(); 
                                     cloneObj3d.updateMatrixWorld(true);
+                                    cloneObj3d.updateMatrixWorld(true);
+                                    cloneObj3d.matrixAutoUpdate = false; 
                                     tileData.sceneTile.add(cloneObj3d);
                                 }
                             }
