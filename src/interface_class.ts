@@ -54,6 +54,7 @@ export interface DataTileInfo
 export interface CustomSource {
     id: string;
     url : string; 
+    root_url : string; 
     key : string; 
     modelCache : LRUCache<string,Model>; 
     tileCache : LRUCache<string,DataTileInfo>; 
@@ -62,8 +63,8 @@ export interface CustomSource {
 
 export interface MapCustomLayer {
     id: string;
-    type: 'custom';
-    source_ : CustomSource; 
+    type : 'custom';
+    source_? : CustomSource; 
     renderingMode: '3d' | '2d' | undefined;
     map?: any;
     camera?: any;

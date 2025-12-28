@@ -1,7 +1,7 @@
 // Use global THREE from CDN
 import {OverscaledTileID, Transform} from 'maplibre-gl'
 import * as THREE from 'three'
-import {MapCustomLayer, DataTileInfo} from "./interface_class"
+import {MapCustomLayer, DataTileInfo, CustomSource} from "./interface_class"
 import {customSource} from "./customSource"
 // Define custom layer with Three.js
 export class mapCustomLayer implements MapCustomLayer {
@@ -9,12 +9,17 @@ export class mapCustomLayer implements MapCustomLayer {
     type : "custom" = "custom";
     renderingMode: '3d' | '2d' | undefined = '3d';
     tileSize = 512; 
-    source_ : customSource = new customSource();
+    source_ : CustomSource; 
     map : any; 
     camera : any = null; 
     renderer : any = null; 
     minZoom : number = 16;
     maxZoom : number = 19;
+    constructor(id_ : string, source : CustomSource)
+    {
+        this.source_ = source; 
+        this.id = id_; 
+    }
     updateVisibleTiles(transform : Transform): Array<OverscaledTileID> {
         if (!this.map) {
             return [];
@@ -63,6 +68,7 @@ export class mapCustomLayer implements MapCustomLayer {
 
     render(gl: WebGLRenderingContext): void {
         const tr : Transform = this.map.transform;
+        // || this.map.isMoving() || this.map.isRotating() || this.map.isZooming()
         if (!this.updateVisibleTiles || !this.camera || !this.renderer || !this.map) {
             return;
         }

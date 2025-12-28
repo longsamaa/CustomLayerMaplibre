@@ -2,10 +2,7 @@
 export async function requestAsync(url: string): Promise<any> {
     try {
         const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Referer': 'https://map.map4d.vn/'
-            }
+            method: 'GET'
         });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -27,21 +24,19 @@ export async function requestAsync(url: string): Promise<any> {
 export function buildURL(z : number,
     x: number,
     y: number,
-    key : string,
     url : string
 ) : string {
     return url.replace("{z}", z.toString())
         .replace("{x}", x.toString())
         .replace("{y}", y.toString())
-        .replace("{key}", key);
+        // .replace("{key}", key);
 }; 
 
 export async function requestVectorTile(z: number, 
     x: number,
     y: number,
-    key : string, 
     url : string): Promise<ArrayBuffer> {
-    const replaceUrl : string = buildURL(z,x,y,key,url); 
+    const replaceUrl : string = buildURL(z,x,y,url); 
     return requestAsync(replaceUrl) as Promise<ArrayBuffer>;
 }
 

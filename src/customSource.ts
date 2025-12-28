@@ -7,18 +7,22 @@ import {parseVectorTile} from "./convert/vectortile_convert"
 import {parseTileInfo} from "./tile/tile"
 import { LRUCache } from 'lru-cache'
 import { downloadModel, downloadTexture} from './model/objModel'    
-import { CanonicalTileID } from 'maplibre-gl';
-import { Box3 } from 'three'
+import { ICanonicalTileID } from 'maplibre-gl';
 import { VectorTile } from '@mapbox/vector-tile'
 export class customSource implements CustomSource {
     id = 'map-4d';
     //hard code
-    url = 'https://tile.map4d.vn/tile/vector/{z}/{x}/{y}?key={key}'; 
+    url : string; 
+    root_url : string = 'http://10.225.1.11:8080';
     //hard code 
-    key = '208e1c99aa440d8bc2847aafa3bc0669'; 
+    key : string; 
     modelCache : LRUCache<string,Model> = new LRUCache<string,Model>({ max : 1000 , dispose : this.obObject3dDispose }); 
     tileCache : LRUCache<string,DataTileInfo> = new LRUCache<string,DataTileInfo>({max : 500 , dispose : this.onTileDispose });  
-    constructor(){
+    constructor(id_ : string, url_ : string, key_ : string)
+    {
+        this.id = id_; 
+        this.url = url_; 
+        this.key = key_; 
     }
 
     onTileDispose(dataTile : DataTileInfo, key : string) : void{
@@ -32,7 +36,7 @@ export class customSource implements CustomSource {
     }
 
     onTileRequest(overScaledTile : OverscaledTileID) : void {
-        const tile : CanonicalTileID = overScaledTile.canonical;
+        const tile : CanonicalTileID = overScaledTile.canonical-;
         const x : number = tile.x; 
         const y : number = tile.y; 
         const z : number = tile.z; 
@@ -47,7 +51,7 @@ export class customSource implements CustomSource {
                 return; 
             }
             const parsedTile : VectorTile = parseVectorTile(buffer);
-            if(Object.keys(parsedTile.layers).includes('objects'))
+            if(Object.keys(parsedTile.layers).includes('map4d_3dmodels'))
             {
                 const objects:Array<ObjectInfo> = parseTileInfo(parsedTile);
                 dataTileInfo.objects = objects; 
@@ -77,20 +81,45 @@ export class customSource implements CustomSource {
                 this.modelCache?.set(modelName, model);
                 const modelUrl : string = object.modelUrl as string; 
                 const textureUrl : string = object.textureUrl as string; 
-                downloadModel(modelUrl).then(async (object3d : THREE.Group) => {
+                const finalModelUrl = this.root_url + modelUrl;
+                const finalTexture = this.root_url + textureUrl; 
+                downloadModel(finalModelUrl).then(async (object3d : THREE.Group) => {
                     if(model.stateDownload === 'disposed')
                     {
                         return; 
                     }
                     const textureLoader : THREE.TextureLoader = new THREE.TextureLoader();
-                    const texture : THREE.Texture = await textureLoader.loadAsync(textureUrl);
-                    object3d.traverse((child) => {
-                        if (child instanceof THREE.Mesh) {
-                            child.material.map = texture;
-                            child.material.needsUpdate = true;
+                    textureLoader.loadAsync(finalTexture).then((texture : THREE.Texture) => {
+                        if(model.stateDownload === 'disposed')
+                        {
+                            return; 
                         }
-                    });
+                        object3d.traverse((child) => {
+                            if (child instanceof THREE.Mesh) {
+                                child.material.map = texture;
+                                child.material.needsUpdate = true;
+                            }
+                        });
+                    }).catch((err) => {
+                        console.warn('Texture load failed, adding edges instead:', err);
+                        // Add edge geometry only if texture loading fails
+                        object3d.traverse((child) => {
+                            if (child instanceof THREE.Mesh) {
+                                const edges = new THREE.EdgesGeometry(child.geometry);
+                                const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+                                const edgeLines = new THREE.LineSegments(edges, edgeMaterial);
+                                child.add(edgeLines);
+                            }
+                        });
+                    }); 
                     model.stateDownload = 'loaded';
+                    let bounding_box: THREE.Box3 = new THREE.Box3(); 
+                    bounding_box.setFromObject(object3d as THREE.Object3D); 
+                    let min_y = bounding_box.min.z;
+                    let max_y = bounding_box.max.z; 
+                    let delta = max_y - min_y;  
+                    object3d.position.z = -delta * 0.3;
+                    object3d.matrixAutoUpdate = false;  
                     model.object3d = object3d;
                 })
                 .catch((err) => {
@@ -136,11 +165,10 @@ export class customSource implements CustomSource {
                                     const objectScale : number = object.scale as number;
                                     const cloneObj3d : THREE.Group = obj3d.clone(true);
                                     cloneObj3d.name = modelId; 
-                                    cloneObj3d.position.set(object.localCoordX as number,object.localCoordY as number,0);
+                                    cloneObj3d.position.set(object.localCoordX as number,object.localCoordY as number,cloneObj3d.position.z);
                                     cloneObj3d.scale.set(scaleUnit * objectScale, -scaleUnit * objectScale, 1.0 * objectScale);
                                     cloneObj3d.rotation.z = -THREE.MathUtils.degToRad(bearing);
                                     cloneObj3d.updateMatrix(); 
-                                    cloneObj3d.updateMatrixWorld(true);
                                     cloneObj3d.updateMatrixWorld(true);
                                     cloneObj3d.matrixAutoUpdate = false; 
                                     tileData.sceneTile.add(cloneObj3d);
@@ -150,6 +178,19 @@ export class customSource implements CustomSource {
                     }
                     if(tileData.stateDownload === 'loaded' && tileData.state === 'loaded')
                     {
+                        //update transtion
+                        if(tileData.sceneTile?.children.length !== 0)
+                        {
+                          tileData.sceneTile?.traverse((obj)=>{
+                            if (obj.isGroup) {
+                                obj.position.z = obj.position.z + 10; 
+                                if(obj.position.z >= 0)
+                                    obj.position.z = 0; 
+                                obj.updateMatrix(); 
+                                obj.updateMatrixWorld(true); 
+                            }
+                          })  
+                        } 
                         resultTiles.push(tileData);
                     }
                 }
