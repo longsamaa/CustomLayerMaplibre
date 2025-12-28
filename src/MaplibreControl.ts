@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 import { TransformControls,TransformControlsMode } from 'three/examples/jsm/controls/TransformControls.js';
-export class MapboxTransformControls extends TransformControls {
+export class MaplibreTransformControls extends TransformControls {
     private map: any;
     private currentTile: any;
     private applyGlobeMatrix: boolean;

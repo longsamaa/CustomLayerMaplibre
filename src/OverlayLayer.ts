@@ -5,7 +5,7 @@ import type {
     CustomRenderMethodInput,
 } from 'maplibre-gl';
 import type { LatLon } from './interface_class';
-import { MapboxTransformControls } from './MaplibreControl';
+import { MaplibreTransformControls } from './MaplibreControl';
 import { createYupToZUpMatrix } from './model/objModel';
 import {TransformControlsMode} from 'three/examples/jsm/controls/TransformControls.js';
 import { tileLocalToLatLon, getMetersPerExtentUnit } from './convert/map_convert';
@@ -30,8 +30,7 @@ export class OverlayLayer implements CustomLayerInterface {
     private renderer: THREE.WebGLRenderer | null = null;
     private camera: THREE.PerspectiveCamera | null = null;
     private scene : THREE.Scene | null = null; 
-    private raycaster = new THREE.Raycaster();
-    private transformControl: MapboxTransformControls | null = null;
+    private transformControl: MaplibreTransformControls | null = null;
     private visible = true; 
     private minZoom : number; 
     private maxZoom : number; 
@@ -83,7 +82,7 @@ export class OverlayLayer implements CustomLayerInterface {
             this.scene.remove(this.scene.getObjectByName('TransformControls')!);
         }
         this.transformControl?.dispose();
-        this.transformControl = new MapboxTransformControls(this.camera, 
+        this.transformControl = new MaplibreTransformControls(this.camera, 
             this.renderer.domElement,
             this.map,
             this.applyGlobeMatrix); 
@@ -101,12 +100,18 @@ export class OverlayLayer implements CustomLayerInterface {
         {
             this.transformControl.showX = false; 
             this.transformControl.showY = false;
+            this.transformControl.showZ = true;
         }
         this.transformControl.setMode(mode);
         (this.transformControl as unknown as THREE.Object3D).visible = true;
         (this.transformControl as unknown as THREE.Object3D).name = 'TransformControls';
         this.transformControl.setCurrentTile(this.currentTile);
         this.scene.add(this.transformControl as unknown as THREE.Object3D);
+    }
+
+    setMode(mode : TransformControlsMode) : void{
+        if(!this.transformControl) return;
+        this.transformControl.setMode(mode);
     }
 
     onAdd(map: Map, gl: WebGLRenderingContext): void
@@ -143,40 +148,6 @@ export class OverlayLayer implements CustomLayerInterface {
         this.scene.add(this.test_box);
     }
 
-    private handleClick = (e: any) => {
-        if (!this.map || !this.camera || !this.scene || !this.renderer || !this.visible) {return;}
-        if(this.currentTile)
-        {
-            const canvas = this.map.getCanvas();
-            const rect = canvas.getBoundingClientRect();
-            const ndc = new THREE.Vector2(
-                ((e.point.x) / rect.width) * 2 - 1,
-                -(((e.point.y) / rect.height) * 2 - 1),
-            );
-            const tr: any = (this.map as any).transform;
-            if (!tr?.getProjectionData) {return;}
-            const proj = tr.getProjectionData({
-                overscaledTileID: this.currentTile,
-                applyGlobeMatrix: this.applyGlobeMatrix,
-            });
-            const mvp = new THREE.Matrix4().fromArray(proj.mainMatrix as any);
-            const inv = mvp.clone().invert();
-            const pNear = new THREE.Vector4(ndc.x, ndc.y, -1, 1).applyMatrix4(inv);
-            pNear.multiplyScalar(1 / pNear.w);
-            const pFar = new THREE.Vector4(ndc.x, ndc.y, 1, 1).applyMatrix4(inv);
-            pFar.multiplyScalar(1 / pFar.w);
-            const origin = new THREE.Vector3(pNear.x, pNear.y, pNear.z);
-            const direction = new THREE.Vector3(pFar.x, pFar.y, pFar.z).sub(origin).normalize();
-            this.raycaster.ray.origin.copy(origin);
-            this.raycaster.ray.direction.copy(direction);
-            const hits = this.raycaster.intersectObjects(this.scene.children, true);
-            if (hits.length) {
-                console.log('hit'); 
-            }
-
-        }
-    }
-
     onRemove() : void
     {
         this.renderer?.dispose();
@@ -207,7 +178,7 @@ export class OverlayLayer implements CustomLayerInterface {
                 }
                 if(this.test_box)
                 {
-                    this.attachGizmoToObject(this.test_box!,'scale');
+                    this.attachGizmoToObject(this.test_box!);
                 }
             }
         }
