@@ -1,6 +1,14 @@
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 import { TransformControls,TransformControlsMode } from 'three/examples/jsm/controls/TransformControls.js';
+import {MaplibreControlGizmo} from './MaplibreControlGizmo'
+
+export type HoverParameter = {
+    object3D : THREE.Object3D;
+    ndc_x : number;
+    ndc_y : number;
+}
+
 export class MaplibreTransformControls extends TransformControls {
     private map: any;
     private currentTile: any;
@@ -14,15 +22,40 @@ export class MaplibreTransformControls extends TransformControls {
         Z: Vector3;
     } = {X: new Vector3(1, 0, 0),Y: new Vector3(0, 1, 0), Z: new Vector3(0, 0, 1)};
     private max_X : number = Infinity;
-    private min_X : number = -Infinity; 
+    private min_X : number = -Infinity;
     private min_Y : number = -Infinity;
-    private max_Y : number = Infinity; 
+    private max_Y : number = Infinity;
     private min_Z : number = -Infinity;
     private max_Z : number = Infinity;
+    onHover? : (parameter : HoverParameter) => void;
+    onNotHover? : () => void;
     constructor(camera: THREE.Camera, domElement: HTMLElement, map: any, applyGlobeMatrix: boolean = false) {
         super(camera, domElement);
         this.map = map;
         this.applyGlobeMatrix = applyGlobeMatrix;
+        this.overrideGizmoUpdate();
+    }
+
+    overrideGizmoUpdate() : void {
+        const gizmo = (this as any)._gizmo;
+        if (gizmo && typeof gizmo.updateMatrixWorld === 'function') {
+            const originalUpdate = gizmo.updateMatrixWorld.bind(gizmo);
+            const self = this;
+            gizmo.updateMatrixWorld = function(force?: boolean) {
+                // Call original update
+                originalUpdate(force);
+                let handles : any[] = [];
+                handles = handles.concat( this.picker[ this.mode ].children );
+                handles = handles.concat( this.gizmo[ this.mode ].children );
+                handles = handles.concat( this.helper[ this.mode ].children );
+                for ( let i = 0; i < handles.length; i ++ ) {
+                    const handle = handles[ i ];
+                    handle.scale.set(3000,3000,3000);
+                    handle.updateMatrix();
+                    handle.updateMatrixWorld(true);
+                }
+            }
+        }
     }
 
     setCurrentTile(tile: any) {
@@ -64,9 +97,21 @@ export class MaplibreTransformControls extends TransformControls {
         const gizmo = (this as any)._gizmo;
         const intersect = this.intersectObjectWithRay(gizmo.picker[this.mode], this.getRaycaster());
         if (intersect) {
-            this.axis = intersect.object.name; 
+            this.axis = intersect.object.name;
+            if(this.onHover)
+            {
+                this.onHover({
+                    object3D : this.object,
+                    ndc_x : pointer.x,
+                    ndc_y : pointer.y,
+                });
+            }
+            this.map.triggerRepaint();
         }
         else {
+            if(this.onNotHover){
+                this.onNotHover();
+            }
             this.enableEventMap();
             this.axis = null;
         }
@@ -239,9 +284,21 @@ export class MaplibreTransformControls extends TransformControls {
 			    }
             }
         }
+        this.map.triggerRepaint();
+        object.updateMatrixWorld();
+        object.updateMatrix();
         this.dispatchEvent( { type: 'change' } );
 		this.dispatchEvent( { type: 'objectChange' } );
+        if(this.onHover)
+        {
+            this.onHover({
+                object3D : object,
+                ndc_x : pointer.x,
+                ndc_y : pointer.y,
+            });
+        }
     }
+
 
     private intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible?: boolean): any {
         const allIntersections = raycaster.intersectObject(object, true);

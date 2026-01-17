@@ -78,4 +78,7 @@ export function latlonToLocal(
         coordY : localY
     }; 
     return result; 
-}; 
+};
+export function clampZoom(minZoom : number , maxZoom : number, z: number): number {
+    return Math.max(minZoom, Math.min(maxZoom, z));
+}
